@@ -1,64 +1,93 @@
-/**
- * ═══════════════════════════════════════════════════════════════════
- * Edge Context Router — Semantic Scorer
- * 
- * Evaluates the user's intent to determine computational complexity.
- * Utilizes heuristics and lightweight embeddings (like Transformers.js)
- * to make a zero-latency routing decision.
- * ═══════════════════════════════════════════════════════════════════
- */
-
+import { pipeline, env, cos_sim } from '@xenova/transformers';
 import { TaskComplexity, RouteDecision } from '../types';
 
+// Use local models or disable them if appropriate in your environment
+// env.allowLocalModels = false;
+
 export class SemanticScorer {
-  // Keywords highly correlated with complex reasoning requirements
-  private complexTriggers = [
-    'synthesize', 'compare', 'contrast', 'architect', 
-    'why', 'evaluate', 'debug', 'refactor', 'plan'
+  private extractor: any = null;
+  
+  private complexAnchors = [
+    'synthesize and analyze complex data',
+    'architect and design a new system',
+    'debug and refactor the codebase',
+    'evaluate and compare multiple options',
+    'step by step complex reasoning and planning'
   ];
 
-  // Keywords correlated with basic local tasks
-  private simpleTriggers = [
-    'summarize', 'extract', 'format', 'what is', 
-    'who is', 'translate', 'fix spelling'
+  private simpleAnchors = [
+    'summarize the text',
+    'extract the main points',
+    'format this string',
+    'answer a simple trivia question',
+    'translate this sentence',
+    'fix spelling and grammar'
   ];
 
-  /**
-   * Evaluates the prompt and returns a routing decision.
-   * In a production environment, this would run a tiny local classifier
-   * or compute cosine similarity against a vector store of intent anchors.
-   */
+  private complexEmbeddings: any[] = [];
+  private simpleEmbeddings: any[] = [];
+  private initialized = false;
+
+  private async initialize() {
+    if (this.initialized) return;
+
+    this.extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { quantized: true });
+
+    // Precompute anchor embeddings
+    for (const anchor of this.complexAnchors) {
+      const embed = await this.extractor(anchor, { pooling: 'mean', normalize: true });
+      this.complexEmbeddings.push(embed.tolist()[0]);
+    }
+
+    for (const anchor of this.simpleAnchors) {
+      const embed = await this.extractor(anchor, { pooling: 'mean', normalize: true });
+      this.simpleEmbeddings.push(embed.tolist()[0]);
+    }
+
+    this.initialized = true;
+  }
+
   public async evaluate(prompt: string): Promise<RouteDecision> {
-    const lowerPrompt = prompt.toLowerCase();
-    
-    let complexityScore = 0;
-    
-    // Simple heuristic scoring
-    for (const trigger of this.complexTriggers) {
-      if (lowerPrompt.includes(trigger)) complexityScore += 2;
-    }
-    
-    for (const trigger of this.simpleTriggers) {
-      if (lowerPrompt.includes(trigger)) complexityScore -= 1;
-    }
-    
-    // Length heuristic (long prompts often require more reasoning)
-    if (prompt.split(' ').length > 100) {
-      complexityScore += 1;
+    await this.initialize();
+
+    // Get embedding for prompt
+    const promptEmbed = await this.extractor(prompt, { pooling: 'mean', normalize: true });
+    const promptTensor = promptEmbed.tolist()[0];
+
+    // Get max similarity for complex
+    let maxComplexScore = -1;
+    for (const anchorTensor of this.complexEmbeddings) {
+      const score = cos_sim(promptTensor, anchorTensor);
+      if (score > maxComplexScore) maxComplexScore = score;
     }
 
-    if (complexityScore >= 2) {
+    // Get max similarity for simple
+    let maxSimpleScore = -1;
+    for (const anchorTensor of this.simpleEmbeddings) {
+      const score = cos_sim(promptTensor, anchorTensor);
+      if (score > maxSimpleScore) maxSimpleScore = score;
+    }
+
+    // Length heuristic (long prompts often require more reasoning)
+    let complexScore = maxComplexScore;
+    let simpleScore = maxSimpleScore;
+    
+    if (prompt.split(' ').length > 100) {
+      complexScore += 0.1;
+    }
+
+    if (complexScore > simpleScore) {
       return {
         complexity: TaskComplexity.COMPLEX,
-        confidence: 0.85,
-        reasoning: 'Detected analytical/synthesis intent or complex instruction.',
+        confidence: Math.round(complexScore * 100) / 100,
+        reasoning: `Semantic similarity matched complex intent (score: ${complexScore.toFixed(2)} vs simple: ${simpleScore.toFixed(2)}).`,
         targetProvider: 'CLOUD'
       };
     } else {
       return {
         complexity: TaskComplexity.SIMPLE,
-        confidence: 0.90,
-        reasoning: 'Detected basic extraction/summarization intent.',
+        confidence: Math.round(simpleScore * 100) / 100,
+        reasoning: `Semantic similarity matched simple intent (score: ${simpleScore.toFixed(2)} vs complex: ${complexScore.toFixed(2)}).`,
         targetProvider: 'LOCAL'
       };
     }
