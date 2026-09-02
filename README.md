@@ -1,5 +1,8 @@
 <div align="center">
 
+<img src="assets/banner.jpg" width="800" alt="Project Banner">
+
+
 # 🛣️ edge-context-router
 
 **Edge-Native Graph Semantic Router & Context Engine**
