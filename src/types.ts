@@ -34,5 +34,12 @@ export interface RouteDecision {
 export interface LLMProvider {
   name: string;
   type: 'LOCAL' | 'CLOUD';
+  endpoint?: string;
   execute(prompt: string, context: MinimumViableContext): Promise<string>;
+}
+
+export interface RouterConfig {
+  similarityThreshold?: number;
+  localEndpoint?: string;
+  cloudEndpoint?: string;
 }

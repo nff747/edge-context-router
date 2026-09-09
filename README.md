@@ -38,34 +38,74 @@ The AI engineering industry is rapidly moving away from basic wrappers towards *
 
 ---
 
+## Core Concept
+
+The core routing philosophy is simple:
+1. **Route simple/local queries to cheap local embeddings/models.** Tasks like summarization or basic extraction run on the edge for free.
+2. **Route complex queries to cloud LLMs.** Tasks like deep reasoning, synthesis, or architecture design are routed to powerful cloud models, but only armed with the **Minimum Viable Context (MVC)**.
+
+This dual-tier approach can **save 60-80% of cloud API costs** by keeping routine tasks local and dramatically reducing the token count sent to the cloud.
+
+## Quick Start
+
+You can test the semantic routing and graph extraction immediately using `npx`:
+
+```bash
+# Run a simple query (will route LOCAL)
+npx edge-context-router "summarize this short text"
+
+# Run a complex query (will route CLOUD)
+npx edge-context-router "architect a complex distributed system"
+```
+
+For a full programmatic example, check out [examples/openai-routing.ts](examples/openai-routing.ts).
+
 ## Architecture: Hybrid Orchestration
 
 ```
-┌───────────────────────────────────────────────────────────────┐
-│ User Prompt: "Summarize the error rate of Node A"             │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-┌───────────────────────────────▼───────────────────────────────┐
-│ 1. LocalKnowledgeGraph (MVC Extraction)                       │
-│    - Finds Node A in memory                                   │
-│    - Bounded BFS traversal up to Token Limit (e.g., 500)      │
-│    - Returns highly relevant sub-graph                        │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-┌───────────────────────────────▼───────────────────────────────┐
-│ 2. SemanticScorer (Complexity Evaluation)                     │
-│    - Keyword/Heuristic/Embedding analysis                     │
-│    - Decision: SIMPLE TASK (Score: 0.92)                      │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-             ┌──────────────────┴──────────────────┐
-             ▼                                     ▼
-     [Route: LOCAL]                         [Route: CLOUD]
-┌─────────────────────────┐           ┌─────────────────────────┐
-│ Local WebGPU Provider   │           │ Cloud LLM Provider      │
-│ (WebLLM / Llama-3 8B)   │           │ (GPT-4o / Claude 3.5)   │
-└─────────────────────────┘           └─────────────────────────┘
+                      [ EDGE GATEWAY ]
+                             │
+                             ▼
+                    [ LOCAL EMBEDDINGS ]
+                    (Local Model & Graph)
+                             │
+                      [ THRESHOLD CHECK ]
+                    (Similarity Threshold)
+                     /                  \
+             SIMPLE /                    \ COMPLEX
+                   /                      \
+            [ LOCAL GPU ]          [ SECURE CLOUD SERVER ]
 ```
+
+## Router Configuration
+
+Configure the similarity threshold and backends when initializing the router:
+
+```typescript
+import { EdgeContextRouter } from 'edge-context-router';
+
+const router = new EdgeContextRouter({ 
+  // Fine-tune the semantic boundary between SIMPLE and COMPLEX
+  // Higher = biases towards LOCAL. Lower = biases towards CLOUD.
+  similarityThreshold: 0.1 
+});
+
+// Register your custom provider endpoints
+router.registerLocalProvider(new MyWebLLMProvider('http://localhost:8080/v1'));
+router.registerCloudProvider(new MyOpenAIProvider('https://api.openai.com/v1/chat/completions'));
+```
+
+## Cost Savings Calculator
+
+Estimated cloud API cost reduction based on a typical enterprise workload (1M queries/month):
+
+| Query Type | Distribution | Cloud-Only Cost | Hybrid Edge Cost | Savings |
+|------------|--------------|-----------------|------------------|---------|
+| Simple QA  | 60%          | $1,200          | $0               | 100%    |
+| Complex    | 40%          | $1,600          | $480*            | 70%     |
+| **Total**  | **100%**     | **$2,800**      | **$480**         | **83%** |
+
+*\*Assumes 70% token reduction via MVC extraction before sending to cloud.*
 
 ---
 
@@ -77,23 +117,7 @@ The AI engineering industry is rapidly moving away from basic wrappers towards *
 npm install edge-context-router
 ```
 
-### 2. Initialization & Setup
-
-```typescript
-import { EdgeContextRouter, LocalKnowledgeGraph } from 'edge-context-router';
-
-const router = new EdgeContextRouter();
-
-// Register your custom provider implementations
-router.registerLocalProvider(new MyWebLLMProvider());
-router.registerCloudProvider(new MyOpenAIProvider());
-
-// Populate the local graph (e.g., loaded from a client-side database)
-const graph = router.getGraph();
-graph.addNode({ id: 'doc_1', type: 'DOCUMENT', content: 'The server error rate is 4.2%.' });
-```
-
-### 3. Orchestrating a Request
+### 2. Orchestrating a Request
 
 ```typescript
 // 1. A simple prompt that can be handled locally for free

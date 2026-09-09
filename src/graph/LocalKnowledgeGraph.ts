@@ -78,8 +78,8 @@ export class LocalKnowledgeGraph {
 
     // Flatten into string format for LLM injection
     const rawText = Array.from(mvcNodes.values())
-      .map(n => \`[\${n.type}] \${n.id}: \${n.content}\`)
-      .join('\\n');
+      .map(n => `[${n.type}] ${n.id}: ${n.content}`)
+      .join('\n');
 
     return {
       nodes: Array.from(mvcNodes.values()),

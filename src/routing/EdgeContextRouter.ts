@@ -9,18 +9,20 @@
 
 import { LocalKnowledgeGraph } from '../graph/LocalKnowledgeGraph';
 import { SemanticScorer } from './SemanticScorer';
-import { LLMProvider, MinimumViableContext } from '../types';
+import { LLMProvider, MinimumViableContext, RouterConfig } from '../types';
 
 export class EdgeContextRouter {
   private graph: LocalKnowledgeGraph;
   private scorer: SemanticScorer;
+  private config: RouterConfig;
   
   private localProvider: LLMProvider | null = null;
   private cloudProvider: LLMProvider | null = null;
 
-  constructor() {
+  constructor(config: RouterConfig = {}) {
+    this.config = config;
     this.graph = new LocalKnowledgeGraph();
-    this.scorer = new SemanticScorer();
+    this.scorer = new SemanticScorer({ similarityThreshold: config.similarityThreshold });
   }
 
   public registerLocalProvider(provider: LLMProvider) {
@@ -48,11 +50,11 @@ export class EdgeContextRouter {
     // 1. Extract Minimum Viable Context
     console.log('[Router] Extracting Minimum Viable Context...');
     const mvc = this.graph.extractMVC(entityIds, 1500);
-    console.log(\`[Router] MVC Extracted: \${mvc.nodes.length} nodes, \${mvc.tokenCountEstimate} tokens.\`);
+    console.log(`[Router] MVC Extracted: ${mvc.nodes.length} nodes, ${mvc.tokenCountEstimate} tokens.`);
 
     // 2. Evaluate Task Complexity
     const decision = await this.scorer.evaluate(prompt);
-    console.log(\`[Router] Decision: \${decision.targetProvider} (\${decision.complexity}) - \${decision.reasoning}\`);
+    console.log(`[Router] Decision: ${decision.targetProvider} (${decision.complexity}) - ${decision.reasoning}`);
 
     // 3. Route & Execute
     const targetProvider = decision.targetProvider === 'LOCAL' 

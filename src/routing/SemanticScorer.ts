@@ -25,8 +25,12 @@ export class SemanticScorer {
 
   private complexEmbeddings: any[] = [];
   private simpleEmbeddings: any[] = [];
+  private threshold: number = 0;
 
-  constructor() {
+  constructor(config?: { similarityThreshold?: number }) {
+    if (config?.similarityThreshold !== undefined) {
+      this.threshold = config.similarityThreshold;
+    }
     // Non-blocking background warmup
     this.warmup();
   }
@@ -120,11 +124,11 @@ export class SemanticScorer {
     let simpleScore = maxSimpleScore;
     if (prompt.split(' ').length > 100) complexScore += 0.1;
 
-    const isComplex = complexScore > simpleScore;
+    const isComplex = complexScore > (simpleScore + this.threshold);
     return {
       complexity: isComplex ? TaskComplexity.COMPLEX : TaskComplexity.SIMPLE,
       confidence: Math.round((isComplex ? complexScore : simpleScore) * 100) / 100,
-      reasoning: `[Tier-1 Neural Transformer]: Cosine similarity matched ${isComplex ? 'complex' : 'simple'} intent (${complexScore.toFixed(2)} vs ${simpleScore.toFixed(2)}).`,
+      reasoning: `[Tier-1 Neural Transformer]: Cosine similarity matched ${isComplex ? 'complex' : 'simple'} intent (${complexScore.toFixed(2)} vs ${simpleScore.toFixed(2)}, threshold: ${this.threshold}).`,
       targetProvider: isComplex ? 'CLOUD' : 'LOCAL'
     };
   }
