@@ -40,15 +40,26 @@ export class Router<T> {
     let currentNode = this.root;
     const params: Record<string, string> = {};
 
-    for (const part of parts) {
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
       if (currentNode.children.has(part)) {
         currentNode = currentNode.children.get(part)!;
       } else if (currentNode.paramChild) {
         currentNode = currentNode.paramChild;
         params[currentNode.paramName!] = part;
+      } else if (currentNode.wildcardChild) {
+        currentNode = currentNode.wildcardChild;
+        params['*'] = parts.slice(i).join('/');
+        break;
       } else {
         return null;
       }
+    }
+
+    // also check if the path ended but we have a wildcard
+    if (!currentNode.handler && currentNode.wildcardChild) {
+      currentNode = currentNode.wildcardChild;
+      params['*'] = '';
     }
 
     if (!currentNode.handler) {
