@@ -68,4 +68,24 @@ export class Router<T> {
 
     return { handler: currentNode.handler, params };
   }
+
+  get(path: string, handler: T): void {
+    this.insert(`GET:${path}`, handler);
+  }
+
+  post(path: string, handler: T): void {
+    this.insert(`POST:${path}`, handler);
+  }
+
+  put(path: string, handler: T): void {
+    this.insert(`PUT:${path}`, handler);
+  }
+
+  delete(path: string, handler: T): void {
+    this.insert(`DELETE:${path}`, handler);
+  }
+
+  findRoute(method: string, path: string): { handler: T; params: Record<string, string> } | null {
+    return this.find(`${method}:${path}`);
+  }
 }
