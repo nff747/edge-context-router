@@ -6,4 +6,18 @@ export class Router<T> {
   constructor() {
     this.root = new Node();
   }
+
+  insert(path: string, handler: T): void {
+    const parts = path.split('/').filter(Boolean);
+    let currentNode = this.root;
+
+    for (const part of parts) {
+      if (!currentNode.children.has(part)) {
+        currentNode.children.set(part, new Node());
+      }
+      currentNode = currentNode.children.get(part)!;
+    }
+
+    currentNode.handler = handler;
+  }
 }
