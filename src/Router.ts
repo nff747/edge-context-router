@@ -21,7 +21,7 @@ export class Router<T> {
       } else if (part.startsWith(':')) {
         if (!currentNode.paramChild) {
           currentNode.paramChild = new Node();
-          currentNode.paramName = part.slice(1);
+          currentNode.paramChild.paramName = part.slice(1);
         }
         currentNode = currentNode.paramChild;
       } else {
