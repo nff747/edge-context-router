@@ -37,4 +37,20 @@ describe('Router', () => {
     expect(result?.handler).toBe('user_post_handler');
     expect(result?.params).toEqual({ userId: '123', postId: '456' });
   });
+
+  it('should match wildcard route', () => {
+    router.insert('/assets/*', 'assets_handler');
+    const result = router.find('/assets/css/main.css');
+    expect(result).not.toBeNull();
+    expect(result?.handler).toBe('assets_handler');
+    expect(result?.params).toEqual({ '*': 'css/main.css' });
+  });
+
+  it('should match wildcard route with no trailing path', () => {
+    router.insert('/assets/*', 'assets_handler');
+    const result = router.find('/assets/');
+    expect(result).not.toBeNull();
+    expect(result?.handler).toBe('assets_handler');
+    expect(result?.params).toEqual({ '*': '' });
+  });
 });
