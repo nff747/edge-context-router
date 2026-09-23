@@ -53,4 +53,18 @@ describe('Router', () => {
     expect(result?.handler).toBe('assets_handler');
     expect(result?.params).toEqual({ '*': '' });
   });
+
+  it('should route by HTTP method', () => {
+    router.get('/api/users', 'get_users');
+    router.post('/api/users', 'post_users');
+
+    const getResult = router.findRoute('GET', '/api/users');
+    expect(getResult?.handler).toBe('get_users');
+
+    const postResult = router.findRoute('POST', '/api/users');
+    expect(postResult?.handler).toBe('post_users');
+
+    const putResult = router.findRoute('PUT', '/api/users');
+    expect(putResult).toBeNull();
+  });
 });
