@@ -12,7 +12,13 @@ export class Router<T> {
     let currentNode = this.root;
 
     for (const part of parts) {
-      if (part.startsWith(':')) {
+      if (part === '*') {
+        if (!currentNode.wildcardChild) {
+          currentNode.wildcardChild = new Node();
+        }
+        currentNode = currentNode.wildcardChild;
+        break; // wildcard matches rest of the path
+      } else if (part.startsWith(':')) {
         if (!currentNode.paramChild) {
           currentNode.paramChild = new Node();
           currentNode.paramName = part.slice(1);
