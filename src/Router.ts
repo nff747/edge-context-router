@@ -12,10 +12,18 @@ export class Router<T> {
     let currentNode = this.root;
 
     for (const part of parts) {
-      if (!currentNode.children.has(part)) {
-        currentNode.children.set(part, new Node());
+      if (part.startsWith(':')) {
+        if (!currentNode.paramChild) {
+          currentNode.paramChild = new Node();
+          currentNode.paramName = part.slice(1);
+        }
+        currentNode = currentNode.paramChild;
+      } else {
+        if (!currentNode.children.has(part)) {
+          currentNode.children.set(part, new Node());
+        }
+        currentNode = currentNode.children.get(part)!;
       }
-      currentNode = currentNode.children.get(part)!;
     }
 
     currentNode.handler = handler;
