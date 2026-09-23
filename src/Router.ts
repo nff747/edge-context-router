@@ -20,4 +20,19 @@ export class Router<T> {
 
     currentNode.handler = handler;
   }
+
+  find(path: string): T | null {
+    const parts = path.split('/').filter(Boolean);
+    let currentNode = this.root;
+
+    for (const part of parts) {
+      if (currentNode.children.has(part)) {
+        currentNode = currentNode.children.get(part)!;
+      } else {
+        return null;
+      }
+    }
+
+    return currentNode.handler;
+  }
 }
