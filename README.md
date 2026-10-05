@@ -40,7 +40,7 @@ npm start # or python main.py or cargo run
 
 **Edge-Native Graph Semantic Router & Context Engine**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-FF0055.svg?style=for-the-badge)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 *Stop dumping massive, noisy payloads into context windows.*<br>
@@ -167,4 +167,4 @@ const answer2 = await router.execute(prompt2, ['doc_1']);
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [Apache-2.0 License](LICENSE).
