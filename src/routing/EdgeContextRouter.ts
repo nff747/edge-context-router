@@ -56,11 +56,16 @@ export class EdgeContextRouter {
     const decision = await this.scorer.evaluate(prompt);
     console.log(`[Router] Decision: ${decision.targetProvider} (${decision.complexity}) - ${decision.reasoning}`);
 
-    // 3. Route & Execute
-    const targetProvider = decision.targetProvider === 'LOCAL' 
-      ? this.localProvider 
-      : this.cloudProvider;
+    // 3. Route & Execute with Automatic Cloud Failover
+    if (decision.targetProvider === 'LOCAL') {
+      try {
+        return await this.localProvider.execute(prompt, mvc);
+      } catch (err: any) {
+        console.warn(`[Router] Local provider failed (${err?.message || 'unknown error'}), falling back to Cloud provider.`);
+        return await this.cloudProvider.execute(prompt, mvc);
+      }
+    }
 
-    return targetProvider.execute(prompt, mvc);
+    return this.cloudProvider.execute(prompt, mvc);
   }
 }
