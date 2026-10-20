@@ -30,6 +30,35 @@ export class LocalKnowledgeGraph {
     if (targetEdges) targetEdges.push({ source: edge.target, target: edge.source, relation: edge.relation, weight: edge.weight });
   }
 
+  public getNode(id: string): GraphNode | undefined {
+    return this.nodes.get(id);
+  }
+
+  public hasNode(id: string): boolean {
+    return this.nodes.has(id);
+  }
+
+  public getEdges(id: string): GraphEdge[] {
+    return this.edges.get(id) || [];
+  }
+
+  public getNodeCount(): number {
+    return this.nodes.size;
+  }
+
+  public getEdgeCount(): number {
+    let count = 0;
+    for (const edgeList of this.edges.values()) {
+      count += edgeList.length;
+    }
+    return count;
+  }
+
+  public clear(): void {
+    this.nodes.clear();
+    this.edges.clear();
+  }
+
   /**
    * Extracts the Minimum Viable Context (MVC) starting from seed entities.
    * Traverses outward until the maxTokenBudget is hit.
