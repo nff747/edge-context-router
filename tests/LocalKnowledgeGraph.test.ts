@@ -36,4 +36,30 @@ describe('LocalKnowledgeGraph', () => {
     expect(graph.getNodeCount()).toBe(0);
     expect(graph.getEdgeCount()).toBe(0);
   });
+
+  it('extracts MVC bounded by token budget', () => {
+    const graph = new LocalKnowledgeGraph();
+    graph.addNode({ id: 'doc1', type: 'doc', content: 'one two three four five' }); // ~7 tokens
+    graph.addNode({ id: 'doc2', type: 'doc', content: 'six seven eight nine ten' });
+    graph.addEdge({ source: 'doc1', target: 'doc2', relation: 'next', weight: 1.0 });
+
+    const mvc = graph.extractMVC(['doc1'], 10); // budget only allows doc1
+    expect(mvc.nodes.length).toBe(1);
+    expect(mvc.nodes[0].id).toBe('doc1');
+    expect(mvc.rawText).toContain('one two three');
+  });
+
+  it('terminates cleanly on cyclic graphs without infinite loops', () => {
+    const graph = new LocalKnowledgeGraph();
+    graph.addNode({ id: 'a', type: 'node', content: 'Node A' });
+    graph.addNode({ id: 'b', type: 'node', content: 'Node B' });
+    graph.addNode({ id: 'c', type: 'node', content: 'Node C' });
+
+    graph.addEdge({ source: 'a', target: 'b', relation: 'links', weight: 1.0 });
+    graph.addEdge({ source: 'b', target: 'c', relation: 'links', weight: 1.0 });
+    graph.addEdge({ source: 'c', target: 'a', relation: 'cycles', weight: 1.0 });
+
+    const mvc = graph.extractMVC(['a'], 500, 2);
+    expect(mvc.nodes.length).toBe(3);
+  });
 });
