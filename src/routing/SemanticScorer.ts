@@ -78,6 +78,10 @@ export class SemanticScorer {
     }
   }
 
+  public async evaluateBatch(prompts: string[]): Promise<RouteDecision[]> {
+    return Promise.all(prompts.map(p => this.evaluate(p)));
+  }
+
   /**
    * Tier 0: Instant sub-millisecond speculative router
    */

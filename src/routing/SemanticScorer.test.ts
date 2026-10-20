@@ -26,4 +26,15 @@ describe('SemanticScorer', () => {
     expect(decision.targetProvider).toBe('CLOUD');
     expect(decision.confidence).toBeGreaterThan(0.2);
   }, 10000);
+
+  it('evaluates batch of prompts concurrently', async () => {
+    const prompts = [
+      'summarize this article',
+      'architect a distributed mesh network and compare consensus'
+    ];
+    const results = await scorer.evaluateBatch(prompts);
+    expect(results.length).toBe(2);
+    expect(results[0].complexity).toBe(TaskComplexity.SIMPLE);
+    expect(results[1].complexity).toBe(TaskComplexity.COMPLEX);
+  });
 });
