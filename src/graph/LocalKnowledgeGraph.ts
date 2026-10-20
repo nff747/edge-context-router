@@ -63,9 +63,10 @@ export class LocalKnowledgeGraph {
    * Extracts the Minimum Viable Context (MVC) starting from seed entities.
    * Traverses outward until the maxTokenBudget is hit.
    */
-  public extractMVC(seedIds: string[], maxTokenBudget: number = 1000): MinimumViableContext {
+  public extractMVC(seedIds: string[], maxTokenBudget: number = 1000, maxDepth: number = 3): MinimumViableContext {
     const mvcNodes = new Map<string, GraphNode>();
     const mvcEdges: GraphEdge[] = [];
+    const depthLimit = Math.max(1, Math.min(maxDepth, 10));
     
     let currentTokenEstimate = 0;
     
@@ -98,7 +99,7 @@ export class LocalKnowledgeGraph {
           if (mvcNodes.has(edge.target)) {
             mvcEdges.push(edge);
           }
-          if (!visited.has(edge.target) && depth < 3) { // Max 3 degrees of separation
+          if (!visited.has(edge.target) && depth < depthLimit) {
             queue.push({ id: edge.target, depth: depth + 1 });
           }
         }
