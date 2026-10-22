@@ -40,7 +40,7 @@ npm start # or python main.py or cargo run
 
 **Edge-Native Graph Semantic Router & Context Engine**
 
-[![License: MIT](https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 *Stop dumping massive, noisy payloads into context windows.*<br>
