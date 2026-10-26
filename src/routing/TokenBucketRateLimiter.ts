@@ -14,11 +14,15 @@ export class TokenBucketRateLimiter {
     this.capacity = capacity;
     this.refillRatePerSec = refillRatePerSec;
     this.tokens = capacity;
-    this.lastRefillTimestamp = Date.now();
+    this.lastRefillTimestamp = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  }
+
+  private getTimeMs(): number {
+    return typeof performance !== 'undefined' ? performance.now() : Date.now();
   }
 
   private refill(): void {
-    const now = Date.now();
+    const now = this.getTimeMs();
     const elapsedSec = (now - this.lastRefillTimestamp) / 1000;
     if (elapsedSec > 0) {
       const addedTokens = elapsedSec * this.refillRatePerSec;
