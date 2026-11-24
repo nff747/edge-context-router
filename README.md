@@ -5,6 +5,8 @@
 
 # 🛣️ edge-context-router
 
+[![Lunar Paradox](https://img.shields.io/badge/Organization-Lunar_Paradox-0a0e1a?style=for-the-badge&logo=probot&logoColor=d7b886)](https://lunarparadox.com)
+
 **Edge-Native Graph Semantic Router & Context Engine**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -135,3 +137,7 @@ const answer2 = await router.execute(prompt2, ['doc_1']);
 ## License
 
 This project is licensed under the [Apache-2.0 License](LICENSE).
+
+---
+
+*A component of the [Lunar Paradox](https://lunarparadox.com) applied systems & graphics laboratory. Engineered by nff747.*

@@ -37,7 +37,7 @@
     "browser-ai",
     "orchestration"
   ],
-  "author": "nff747 <nff747@users.noreply.github.com>",
+  "author": "Lunar Paradox <engineering@lunarparadox.com>",
   "license": "Apache-2.0",
   "devDependencies": {
     "tsup": "^8.3.0",
@@ -54,5 +54,5 @@
   "bugs": {
     "url": "https://github.com/nff747/edge-context-router/issues"
   },
-  "homepage": "https://github.com/nff747/edge-context-router#readme"
+  "homepage": "https://lunarparadox.com"
 }
